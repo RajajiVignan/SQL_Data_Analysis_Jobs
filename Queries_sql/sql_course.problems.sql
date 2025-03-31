@@ -56,3 +56,4 @@ SELECT
 FROM job_temp
 WHERE salary_year_avg > 70000 AND job_title_short = 'Data Analyst'
 ORDER BY salary_year_avg DESC;
+

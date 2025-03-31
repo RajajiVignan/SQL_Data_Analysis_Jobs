@@ -69,4 +69,118 @@ WHERE
     job_title_short = 'Data Analyst'
 GROUP BY
     month
-ORDER BY job_posted_count DESC;
+ORDER BY job_posted_count DESC;d
+
+-- creating a new table based on month 
+CREATE TABLE jobs_jan AS
+    SELECT 
+        *
+    FROM 
+        job_postings_fact
+    WHERE 
+        EXTRACT(MONTH FROM job_posted_date) = 1 and
+        EXTRACT(YEAR FROM job_posted_date) = 2023
+
+CREATE TABLE jobs_feb AS
+    SELECT 
+        *
+    FROM 
+        job_postings_fact
+    WHERE 
+        EXTRACT(MONTH FROM job_posted_date) = 2
+
+CREATE TABLE jobs_mar AS
+    SELECT 
+        *
+    FROM 
+        job_postings_fact
+    WHERE 
+        EXTRACT(MONTH FROM job_posted_date) = 3
+
+
+DROP TABLE jobs_2023
+
+SELECT * FROM jobs_mar LIMIT 5;
+
+
+-- Case Expression
+
+SELECT 
+        Case 
+            WHEN job_location = 'Anywhere' THEN 'Remote'
+            ELSE 'Onsite'
+        END AS job_location_category,
+        COUNT(job_id) as job_number
+FROM job_postings_fact;
+GROUP BY job_location_category;
+
+
+SELECT 
+    COUNT(job_id) as job_number,
+    CASE 
+        WHEN job_location = 'Anywhere' THEN 'Remote'
+        ELSE 'Onsite'
+    END AS job_location_category
+FROM job_postings_fact
+GROUP BY 
+    CASE 
+        WHEN job_location = 'Anywhere' THEN 'Remote'
+        ELSE 'Onsite'
+    END;
+
+
+
+
+-- Subqueries 
+
+SELECT * 
+FROM ( 
+        SELECT * 
+        FROM job_postings_fact
+        WHERE EXTRACT(MONTH FROM job_posted_date) =1
+) AS jan_jobs;
+
+
+SELECT * 
+FROM ( 
+        SELECT job_id, job_title_short, job_title, job_location, job_via, job_schedule_type, 
+               job_work_from_home, search_location, job_posted_date, job_no_degree_mention, 
+               job_health_insurance, job_country
+        FROM job_postings_fact
+        WHERE EXTRACT(MONTH FROM job_posted_date) = 1
+) AS jan_jobs;
+
+
+--CTEs for company job postings 
+
+WITH company_job_count AS (
+    SELECT 
+        company_id, 
+        COUNT(*) AS job_count
+    FROM job_postings_fact
+    GROUP BY company_id
+)
+SELECT name, job_count FROM company_dim
+Left JOIN company_job_count
+ON company_dim.company_id = company_job_count.company_id
+ORDER BY job_count DESC
+
+
+--UNIONS 
+
+SELECT job_title_short, 
+        company_id, 
+        job_location 
+        
+FROM jobs_jan 
+
+UNION
+SELECT job_title_short, 
+        company_id, 
+        job_location
+FROM jobs_feb
+UNION
+SELECT job_title_short, 
+        company_id, 
+        job_location
+FROM jobs_mar;
